@@ -1,0 +1,15 @@
+{application, fibHeap,
+ [{description, "Fibonacci heap"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {fibHeap_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.

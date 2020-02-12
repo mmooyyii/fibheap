@@ -1,6 +1,8 @@
 # fibheap
 Fibonacci heap for erlang
 
+WARNING: I am not sure bug free.
+
 EXAMPLE:
     
     F1 = fibheap:new(),

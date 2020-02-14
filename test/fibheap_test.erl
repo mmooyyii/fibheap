@@ -69,3 +69,11 @@ fib5_test() ->
     {{729, 729}, F19} = fibheap:pop(F18),
     {{740, 740}, _F20} = fibheap:pop(F19),
     ok.
+
+fib6_test() ->
+    F1 = fibheap:new(),
+    F2 = fibheap:insert(F1, {1, 1}),
+    F3 = fibheap:insert(F2, {1, 1}),
+    {{1, 1}, F4} = fibheap:pop(F3),
+    {{1, 1}, F5} = fibheap:pop(F4),
+    F1 = F5.

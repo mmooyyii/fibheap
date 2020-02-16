@@ -10,8 +10,6 @@
 -author("mmooy").
 
 -include_lib("eunit/include/eunit.hrl").
-
-
 fib1_test() ->
     F1 = fibheap:new(),
     F2 = fibheap:insert(F1, {1, 1}),
@@ -77,3 +75,21 @@ fib6_test() ->
     {{1, 1}, F4} = fibheap:pop(F3),
     {{1, 1}, F5} = fibheap:pop(F4),
     F1 = F5.
+
+fib7_test() ->
+    F1 = fibheap:new(),
+    lists:foldl(fun(_, {F2, List}) ->
+        I = ceil(rand:uniform() * 1000),
+        F3 = fibheap:insert(F2, {I, I}),
+        Ls = [I | List],
+        case rand:uniform() > 0.5 of
+            true ->
+                {{J, J}, _} = fibheap:get_min(F3),
+                J = lists:min(Ls),
+                {F3, Ls};
+            _ ->
+                {{J, J}, F4} = fibheap:pop(F3),
+                J = lists:min(Ls),
+                {F4, lists:delete(J, Ls)}
+        end end, {F1, []}, lists:seq(1, 10000)).
+

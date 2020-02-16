@@ -111,17 +111,12 @@ p_consolidate(#fib_heap{memory = Memory, min = MinRef} = F, NowRef = Ref2, Mutex
             p_consolidate(NewHeap, NextRef, NewMutex)
     end.
 
-merge_node({Key1, Ref1}, {Key2, Ref2}, H, Degree, MutexTuple) when Key1 > Key2 ->
-    p_merge_node(Ref1, Ref2, H, Degree, MutexTuple);
-merge_node({_Key1, Ref1}, {_Key2, Ref2}, H, Degree, MutexTuple) ->
-    p_merge_node(Ref2, Ref1, H, Degree, MutexTuple).
-
 merge_node({Key1, Ref1}, {Key2, Ref2}, {MinKey, MinRef}, H, Degree, MutexTuple) when Key1 > Key2 ->
     p_merge_node(Ref1, Ref2, H#fib_heap{min = compare_min({Key2, Ref2}, {MinKey, MinRef})}, Degree, MutexTuple);
 merge_node({Key1, Ref1}, {_Key2, Ref2}, {MinKey, MinRef}, H, Degree, MutexTuple) ->
     p_merge_node(Ref2, Ref1, H#fib_heap{min = compare_min({Key1, Ref1}, {MinKey, MinRef})}, Degree, MutexTuple).
 
-p_merge_node(BigRef, SmallRef, #fib_heap{memory = Memory, min = Min}, Degree, MutexTuple) ->
+p_merge_node(BigRef, SmallRef, #fib_heap{memory = Memory, min = MinRef}, Degree, MutexTuple) ->
     M1 = remove_node_from_top(BigRef, Memory),
     SmallNode = #node{key = SmallKey} = get_node(SmallRef, M1),
     TmpTuple = erlang:setelement(Degree, MutexTuple, 0),
@@ -129,14 +124,14 @@ p_merge_node(BigRef, SmallRef, #fib_heap{memory = Memory, min = Min}, Degree, Mu
     NewHeap =
         case SmallNode of
             #node{child = ?Undefined} ->
-                #fib_heap{memory = M1#{SmallRef => SmallNode#node{child = BigRef}}, min = Min};
+                #fib_heap{memory = M1#{SmallRef => SmallNode#node{child = BigRef}}, min = MinRef};
             #node{child = Child} ->
                 Left = #node{ref = MostLeftRef} = get_most_left(Child, M1),
                 #fib_heap{memory = M1#{
                     MostLeftRef => Left#node{left = BigRef},
                     BigRef => BigNode#node{right = MostLeftRef},
                     SmallRef => SmallNode#node{child = BigRef}
-                }, min = Min}
+                }, min = MinRef}
         end,
     case erlang:element(Degree + 1, TmpTuple) of
         0 ->
@@ -145,7 +140,8 @@ p_merge_node(BigRef, SmallRef, #fib_heap{memory = Memory, min = Min}, Degree, Mu
         #node{ref = OtherRef} ->
             #fib_heap{memory = TmpMemory} = NewHeap,
             #node{key = OtherKey} = get_node(OtherRef, TmpMemory),
-            merge_node({SmallKey, SmallRef}, {OtherKey, OtherRef}, NewHeap, Degree + 1, TmpTuple)
+            #node{key = MinKey} = get_node(MinRef, TmpMemory),
+            merge_node({SmallKey, SmallRef}, {OtherKey, OtherRef}, {MinKey, MinRef}, NewHeap, Degree + 1, TmpTuple)
     end.
 
 remove_node_from_top(Ref, Memory) when is_reference(Ref) ->
@@ -237,7 +233,7 @@ get_node(?Undefined, _) ->
 get_node(Ref, Memory) ->
     maps:get(Ref, Memory).
 
-compare_min({Key1, Node1Ref}, {Key2, _Node2Ref}) when Key1 < Key2 ->
+compare_min({Key1, Node1Ref}, {Key2, _Node2Ref}) when Key1 =< Key2 ->
     Node1Ref;
 compare_min(_, {_Node2, Node2Ref}) ->
     Node2Ref.

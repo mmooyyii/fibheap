@@ -1,7 +1,9 @@
 # fibheap
 Fibonacci heap for erlang
 
-WARNING: I am not sure bug free.
+    O(1)      insert
+    O(1)      get_min
+    O(log(N)) pop
 
 EXAMPLE:
     
